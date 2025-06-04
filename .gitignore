@@ -1,0 +1,45 @@
+# Build results
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Visual Studio Code
+.vscode/
+
+# Rider
+.idea/
+
+# Logs
+logs/
+*.log
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+
+# Others
+*.swp
+*.tmp
+
+# Test results
+TestResults/
+
+# NuGet
+*.nupkg
+packages/
+
+# Publish
+publish/
+
+# dotenv environment variables
+.env 
