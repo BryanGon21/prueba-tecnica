@@ -51,7 +51,8 @@ public class BooksController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "admin")]
+    //[Authorize(Roles = "admin")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(BookDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<BookDto>> Create([FromBody] CreateBookRequest request, CancellationToken ct)
@@ -63,7 +64,8 @@ public class BooksController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "admin")]
+    //[Authorize(Roles = "admin")]
+    [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateBookRequest request, CancellationToken ct)
@@ -80,7 +82,8 @@ public class BooksController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "admin")]
+    //[Authorize(Roles = "admin")]
+    [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete([FromRoute] Guid id, CancellationToken ct)
@@ -97,7 +100,8 @@ public class BooksController : ControllerBase
     }
 
     [HttpPatch("{id}/borrow")]
-    [Authorize(Roles = "user,admin")]
+    //[Authorize(Roles = "user,admin")]
+    [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Borrow([FromRoute] Guid id, CancellationToken ct)
@@ -114,7 +118,8 @@ public class BooksController : ControllerBase
     }
 
     [HttpPatch("{id}/return")]
-    [Authorize(Roles = "user,admin")]
+    //[Authorize(Roles = "user,admin")]
+    [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Return([FromRoute] Guid id, CancellationToken ct)
@@ -129,4 +134,4 @@ public class BooksController : ControllerBase
         _logger.LogInformation("Book returned successfully");
         return NoContent();
     }
-} 
+}
