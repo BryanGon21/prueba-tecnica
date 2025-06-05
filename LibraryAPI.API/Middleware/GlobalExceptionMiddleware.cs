@@ -1,6 +1,6 @@
+using LibraryAPI.Domain.Exceptions;
 using System.Net;
 using System.Text.Json;
-using LibraryAPI.Domain.Exceptions;
 
 namespace LibraryAPI.API.Middleware;
 
@@ -31,7 +31,7 @@ public class GlobalExceptionMiddleware
     private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         context.Response.ContentType = "application/json";
-        
+
         var response = new
         {
             StatusCode = GetStatusCode(exception),
@@ -48,8 +48,6 @@ public class GlobalExceptionMiddleware
         return exception switch
         {
             NotFoundException => HttpStatusCode.NotFound,
-            ValidationException => HttpStatusCode.BadRequest,
-            UnauthorizedAccessException => HttpStatusCode.Unauthorized,
             _ => HttpStatusCode.InternalServerError
         };
     }
@@ -59,9 +57,7 @@ public class GlobalExceptionMiddleware
         return exception switch
         {
             NotFoundException => "Resource not found",
-            ValidationException => "Validation error",
-            UnauthorizedAccessException => "Unauthorized",
             _ => "Internal server error"
         };
     }
-} 
+}

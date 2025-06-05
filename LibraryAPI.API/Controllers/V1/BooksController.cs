@@ -1,12 +1,17 @@
 using LibraryAPI.Application.DTOs;
+using LibraryAPI.Application.DTOs.Auth;
 using LibraryAPI.Application.Features.Books.Commands;
 using LibraryAPI.Application.Features.Books.Queries;
+using LibraryAPI.Domain.Exceptions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LibraryAPI.API.Controllers.V1;
 
+/// <summary>
+/// Controller for managing books in the library
+/// </summary>
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/[controller]")]
@@ -22,6 +27,11 @@ public class BooksController : ControllerBase
         _logger = logger;
     }
 
+    /// <summary>
+    /// Gets all books in the library
+    /// </summary>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>List of books</returns>
     [HttpGet]
     [AllowAnonymous]
     [ProducesResponseType(typeof(List<BookDto>), StatusCodes.Status200OK)]
@@ -33,6 +43,12 @@ public class BooksController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// Gets a book by its ID
+    /// </summary>
+    /// <param name="id">Book ID</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Book details</returns>
     [HttpGet("{id}")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(BookDto), StatusCodes.Status200OK)]
@@ -44,16 +60,24 @@ public class BooksController : ControllerBase
         if (result == null)
         {
             _logger.LogWarning("Book with ID: {Id} not found", id);
-            return NotFound();
+            throw new NotFoundException("Book not found");
         }
         _logger.LogInformation("Book found: {Title}", result.Title);
         return Ok(result);
     }
 
+    /// <summary>
+    /// Creates a new book
+    /// </summary>
+    /// <param name="request">Book creation request</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Created book</returns>
     [HttpPost]
     [Authorize(Roles = "admin")]
+    [ProducesResponseType(typeof(AuthErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(AuthErrorResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(BookDto), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<BookDto>> Create([FromBody] CreateBookRequest request, CancellationToken ct)
     {
         _logger.LogInformation("Creating new book: {Title}", request.Title);
@@ -62,8 +86,17 @@ public class BooksController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
+    /// <summary>
+    /// Updates an existing book
+    /// </summary>
+    /// <param name="id">Book ID</param>
+    /// <param name="request">Book update request</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>No content if successful</returns>
     [HttpPut("{id}")]
     [Authorize(Roles = "admin")]
+    [ProducesResponseType(typeof(AuthErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(AuthErrorResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateBookRequest request, CancellationToken ct)
@@ -73,15 +106,23 @@ public class BooksController : ControllerBase
         if (!result)
         {
             _logger.LogWarning("Book to update with ID: {Id} not found", id);
-            return NotFound();
+            throw new NotFoundException("Book not found");
         }
         _logger.LogInformation("Book updated successfully");
         return NoContent();
     }
 
+    /// <summary>
+    /// Deletes a book
+    /// </summary>
+    /// <param name="id">Book ID</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>No content if successful</returns>
     [HttpDelete("{id}")]
     [Authorize(Roles = "admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(AuthErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(AuthErrorResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete([FromRoute] Guid id, CancellationToken ct)
     {
@@ -90,14 +131,22 @@ public class BooksController : ControllerBase
         if (!result)
         {
             _logger.LogWarning("Book to delete with ID: {Id} not found", id);
-            return NotFound();
+            throw new NotFoundException("Book not found");
         }
         _logger.LogInformation("Book deleted successfully");
         return NoContent();
     }
 
+    /// <summary>
+    /// Marks a book as borrowed
+    /// </summary>
+    /// <param name="id">Book ID</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>No content if successful</returns>
     [HttpPatch("{id}/borrow")]
     [Authorize(Roles = "user,admin")]
+    [ProducesResponseType(typeof(AuthErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(AuthErrorResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Borrow([FromRoute] Guid id, CancellationToken ct)
@@ -107,14 +156,22 @@ public class BooksController : ControllerBase
         if (!result)
         {
             _logger.LogWarning("Book to borrow with ID: {Id} not found", id);
-            return NotFound();
+            throw new NotFoundException("Book not found");
         }
         _logger.LogInformation("Book borrowed successfully");
         return NoContent();
     }
 
+    /// <summary>
+    /// Marks a book as returned
+    /// </summary>
+    /// <param name="id">Book ID</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>No content if successful</returns>
     [HttpPatch("{id}/return")]
     [Authorize(Roles = "user,admin")]
+    [ProducesResponseType(typeof(AuthErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(AuthErrorResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Return([FromRoute] Guid id, CancellationToken ct)
@@ -124,7 +181,7 @@ public class BooksController : ControllerBase
         if (!result)
         {
             _logger.LogWarning("Book to return with ID: {Id} not found", id);
-            return NotFound();
+            throw new NotFoundException("Book not found");
         }
         _logger.LogInformation("Book returned successfully");
         return NoContent();

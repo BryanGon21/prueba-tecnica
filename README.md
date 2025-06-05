@@ -58,11 +58,17 @@
 
 ## Autenticación y usuarios de prueba
 
-- **Usuario admin por defecto:**
+- **Usuario con rol admin por defecto:**
   - Usuario: `admin`
   - Email: `admin@library.com`
   - Contraseña: `admin123`
   - Rol: `admin`
+
+- **Usuario con rol user por defecto:**
+  - Usuario: `usuario1`
+  - Email: `usuario1@example.com`
+  - Contraseña: `password123`
+  - Rol: `user`
 
 ### Obtener token JWT
 
