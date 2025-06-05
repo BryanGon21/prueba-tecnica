@@ -6,10 +6,12 @@ import api from '../../../lib/axios';
 import { Book } from '../../../lib/types';
 import Loader from '../../../components/Loader';
 import ErrorMessage from '../../../components/ErrorMessage';
+import { useAuth } from '../../../lib/auth/AuthContext';
 
 export default function BookDetailPage() {
   const { id } = useParams();
   const router = useRouter();
+  const { isAdmin } = useAuth();
   const [book, setBook] = useState<Book | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -37,7 +39,7 @@ export default function BookDetailPage() {
           <div><span className="font-semibold">Año de publicación:</span> {book.publicationYear}</div>
           <div><span className="font-semibold">Género:</span> {book.genre}</div>
           <div>
-            <span className="font-semibold">Estado:</span> {book.status === 'Available' ? (
+            <span className="font-semibold">Estado:</span> {book.status === 0 ? (
               <span className="ml-2 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Disponible</span>
             ) : (
               <span className="ml-2 px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">Prestado</span>
@@ -51,12 +53,14 @@ export default function BookDetailPage() {
           >
             Volver
           </button>
-          <button
-            onClick={() => router.push(`/books/${book.id}/edit`)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-          >
-            Editar
-          </button>
+          {isAdmin() && (
+            <button
+              onClick={() => router.push(`/books/${book.id}/edit`)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+            >
+              Editar
+            </button>
+          )}
         </div>
       </div>
     </div>

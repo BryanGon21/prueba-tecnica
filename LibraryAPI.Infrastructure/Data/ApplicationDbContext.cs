@@ -45,6 +45,14 @@ namespace LibraryAPI.Infrastructure.Data
                     Email = "admin@library.com",
                     PasswordHash = "admin123",
                     Role = "admin"
+                },
+                new User
+                {
+                    Id = Guid.NewGuid(),
+                    Username = "usuario1",
+                    Email = "usuario1@example.com",
+                    PasswordHash = "password123",
+                    Role = "user"
                 }
             );
         }

@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Security.Cryptography;
 
 namespace LibraryAPI.Infrastructure.Services;
 
@@ -21,6 +22,13 @@ public class AuthService : IAuthService
         _configuration = configuration;
     }
 
+    private string HashPassword(string password)
+    {
+        using var sha256 = SHA256.Create();
+        var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+        return Convert.ToBase64String(hashedBytes);
+    }
+
     public async Task<LoginResponse> LoginAsync(LoginRequest request)
     {
         var user = await _context.Users
@@ -29,7 +37,8 @@ public class AuthService : IAuthService
         if (user == null)
             throw new UnauthorizedAccessException("Incorrect username or password");
 
-        if (user.PasswordHash != request.Password)
+        var hashedPassword = HashPassword(request.Password);
+        if (user.PasswordHash != hashedPassword)
             throw new UnauthorizedAccessException("Incorrect username or password");
 
         var token = GenerateJwtToken(user.Username, user.Role);

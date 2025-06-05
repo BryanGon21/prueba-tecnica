@@ -8,6 +8,7 @@ import BookActions from '../components/BookActions';
 import Link from 'next/link';
 import Loader from '../../components/Loader';
 import ErrorMessage from '../../components/ErrorMessage';
+import { useAuth } from '../../lib/auth/AuthContext';
 
 function fetchBooks(): Promise<Book[]> {
   return api.get('/Books').then(res => res.data);
@@ -16,6 +17,7 @@ function fetchBooks(): Promise<Book[]> {
 export default function BooksPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { isAdmin, isUser, user } = useAuth();
   const { data: books, isLoading, isError } = useQuery({
     queryKey: ['books'],
     queryFn: fetchBooks,
@@ -29,14 +31,20 @@ export default function BooksPage() {
   });
 
   const toggleStatusMutation = useMutation({
-    mutationFn: (book: Book) => 
-      api.put(`/Books/${book.id}`, {
-        ...book,
-        status: book.status === 'Available' ? 'Borrowed' : 'Available'
-      }),
+    mutationFn: async (book: Book) => {
+      if (book.status === 0) {
+        return api.patch(`/Books/${book.id}/borrow`);
+      }
+      return api.patch(`/Books/${book.id}/return`);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['books'] });
     },
+    onError: (error: any) => {
+      console.error('Error al cambiar el estado del libro:', error);
+      const errorMessage = error.message || error.response?.data?.detailedMessage || error.response?.data?.message || 'No se pudo cambiar el estado del libro. Por favor, intenta de nuevo.';
+      alert(errorMessage);
+    }
   });
 
   const handleEdit = (book: Book) => {
@@ -59,16 +67,21 @@ export default function BooksPage() {
     return <ErrorMessage message="Error al cargar los libros. Por favor, intenta de nuevo." />;
   }
 
+  console.log('Current user:', user);
+  console.log('Is admin?', isAdmin());
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-800">Biblioteca</h1>
-        <button
-          onClick={() => router.push('/books/new')}
-          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium"
-        >
-          Agregar Libro
-        </button>
+        {isAdmin() && (
+          <Link
+            href="/books/new"
+            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium"
+          >
+            Agregar Libro
+          </Link>
+        )}
       </div>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -93,11 +106,11 @@ export default function BooksPage() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{book.genre}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      book.status === 'Available' 
+                      book.status === 0 
                         ? 'bg-green-100 text-green-800' 
                         : 'bg-red-100 text-red-800'
                     }`}>
-                      {book.status === 'Available' ? 'Disponible' : 'Prestado'}
+                      {book.status === 0 ? 'Disponible' : 'Prestado'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 flex gap-2">
@@ -107,12 +120,14 @@ export default function BooksPage() {
                     >
                       Ver
                     </Link>
-                    <BookActions
-                      book={book}
-                      onEdit={handleEdit}
-                      onDelete={handleDelete}
-                      onToggleStatus={handleToggleStatus}
-                    />
+                    {isUser() && (
+                      <BookActions
+                        book={book}
+                        onEdit={isAdmin() ? handleEdit : undefined}
+                        onDelete={isAdmin() ? handleDelete : undefined}
+                        onToggleStatus={handleToggleStatus}
+                      />
+                    )}
                   </td>
                 </tr>
               ))}

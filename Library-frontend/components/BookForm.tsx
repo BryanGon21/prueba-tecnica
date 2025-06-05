@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Book } from "../lib/types";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const bookSchema = z.object({
   title: z.string().min(1, "El título es obligatorio"),
@@ -14,7 +14,6 @@ const bookSchema = z.object({
     .min(1000, "Año inválido")
     .max(new Date().getFullYear(), "Año inválido"),
   genre: z.string().min(1, "El género es obligatorio"),
-  status: z.enum(["Available", "Borrowed"]),
 });
 
 type BookFormData = z.infer<typeof bookSchema>;
@@ -39,7 +38,6 @@ export default function BookForm({ initialData = {}, onSubmit, isLoading }: Book
       author: initialData.author || "",
       publicationYear: initialData.publicationYear || new Date().getFullYear(),
       genre: initialData.genre || "",
-      status: initialData.status || "Available",
     },
   });
 
@@ -90,17 +88,6 @@ export default function BookForm({ initialData = {}, onSubmit, isLoading }: Book
           className="mt-1 block w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         {errors.genre && <span className="text-red-500 text-sm">{errors.genre.message}</span>}
-      </div>
-      <div>
-        <label className="block font-medium">Estado</label>
-        <select
-          {...register("status")}
-          className="mt-1 block w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="Available">Disponible</option>
-          <option value="Borrowed">Prestado</option>
-        </select>
-        {errors.status && <span className="text-red-500 text-sm">{errors.status.message}</span>}
       </div>
       {formError && <div className="text-red-600 text-sm">{formError}</div>}
       <button

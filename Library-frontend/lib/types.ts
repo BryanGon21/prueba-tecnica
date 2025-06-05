@@ -4,5 +4,5 @@ export interface Book {
   author: string;
   publicationYear: number;
   genre: string;
-  status: 'Available' | 'Borrowed';
+  status: number; // 0 = Available, 1 = Borrowed
 } 
